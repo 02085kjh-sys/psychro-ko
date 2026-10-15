@@ -1,0 +1,1363 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#f6f1e3" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="습공기선도" />
+<title>습공기선도 계산기</title>
+<style>
+  :root{
+    --cream:#f6f1e3;
+    --cream2:#eee6d3;
+    --paper:#fbf8ef;
+    --ink:#23262d;
+    --ink-soft:#545863;
+    --teal:#2f6f68;
+    --teal-dark:#1f4e49;
+    --orange:#d9732a;
+    --line:#dcd2b8;
+    --danger:#b3472f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.5;
+    -webkit-text-size-adjust:100%;
+    overflow-x:hidden;
+  }
+  .wrap{
+    max-width:480px;
+    margin:0 auto;
+    padding:18px 16px 48px;
+    min-width:0;
+  }
+  header.app-head{
+    padding:4px 0 18px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:16px;
+  }
+  header.app-head h1{
+    font-family:Georgia,"Noto Serif KR",serif;
+    font-size:24px;
+    font-weight:700;
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  header.app-head p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:13.5px;
+  }
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  nav.tabs button{
+    flex:1;
+    min-height:44px;
+    font-size:15px;
+    font-weight:600;
+    background:transparent;
+    border:none;
+    border-bottom:3px solid transparent;
+    color:var(--ink-soft);
+    padding:8px 4px;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    color:var(--ink);
+    border-bottom-color:var(--orange);
+  }
+  section.pane{display:none;}
+  section.pane.active{display:block;}
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-family:Georgia,"Noto Serif KR",serif;
+    font-size:17px;
+    margin:0 0 12px;
+    color:var(--teal-dark);
+  }
+  .card h3{
+    font-size:14px;
+    margin:18px 0 8px;
+    color:var(--ink-soft);
+    font-weight:700;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:13.5px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:var(--ink);
+  }
+  .field .unit{color:var(--ink-soft); font-weight:400;}
+  .row-inline{display:flex; gap:8px; align-items:center;}
+  .row-inline input[type=range]{flex:1;}
+  input[type=range]{
+    width:100%;
+    height:36px;
+    accent-color:var(--teal);
+  }
+  input[type=number]{
+    width:84px;
+    min-height:44px;
+    font-size:16px;
+    padding:4px 8px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  select{
+    min-height:44px;
+    font-size:16px;
+    padding:4px 8px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .radio-group{display:flex; gap:14px; flex-wrap:wrap;}
+  .radio-group label{
+    display:flex; align-items:center; gap:6px;
+    font-size:14px; font-weight:500; color:var(--ink);
+    min-height:44px;
+  }
+  .radio-group input{width:18px;height:18px;}
+
+  .presets{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px;}
+  .presets button{
+    min-height:44px;
+    font-size:13.5px;
+    background:var(--cream2);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 14px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .presets button:active{background:var(--teal); color:#fff;}
+
+  .btn{
+    min-height:44px;
+    font-size:14.5px;
+    font-weight:600;
+    border-radius:4px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .btn.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  .btn.accent{
+    background:var(--teal); border-color:var(--teal-dark); color:#fff;
+  }
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+
+  table.results{width:100%; border-collapse:collapse; font-size:14.5px;}
+  table.results td{padding:7px 2px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.results td.label{color:var(--ink-soft); width:52%;}
+  table.results td.val{text-align:right; font-weight:700; font-variant-numeric:tabular-nums;}
+  table.results td.val .u{font-weight:400; color:var(--ink-soft); font-size:12.5px; margin-left:3px;}
+
+  .cmp-table{width:100%;}
+  .cmp-head{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; font-size:11.5px; color:var(--ink-soft); font-weight:700; padding:2px 0 6px; border-bottom:1px solid var(--ink); text-align:right;}
+  .cmp-metric{padding:9px 0; border-bottom:1px solid var(--line);}
+  .cmp-metric .cmp-name{font-size:13.5px; color:var(--ink); font-weight:700; margin-bottom:5px;}
+  .cmp-metric .cmp-vals{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; font-size:15px; font-variant-numeric:tabular-nums;}
+  .cmp-metric .cmp-vals > div{text-align:right;}
+  .cmp-metric .cmp-vals .delta{color:var(--orange); font-weight:700;}
+
+  .field-error{
+    display:none;
+    font-size:12.5px;
+    color:var(--danger);
+    font-weight:600;
+    margin-top:6px;
+  }
+  .field-error.show{display:block;}
+  input.invalid{border-color:var(--danger);}
+  .calc-blocked-msg{
+    font-size:13.5px;
+    color:var(--danger);
+    padding:10px 0;
+  }
+
+  .notice{
+    font-size:13px;
+    color:var(--ink-soft);
+    background:var(--cream2);
+    border-left:3px solid var(--orange);
+    padding:10px 12px;
+    margin-top:10px;
+    border-radius:2px;
+  }
+  .caveat{
+    font-size:13px;
+    color:var(--danger);
+    background:#f6e9e3;
+    border-left:3px solid var(--danger);
+    padding:10px 12px;
+    margin-top:10px;
+    border-radius:2px;
+  }
+
+  svg.chart{width:100%; height:auto; display:block; touch-action:none; cursor:crosshair; background:var(--paper);}
+  svg.chart .grid{stroke:var(--line); stroke-width:1;}
+  svg.chart .axis{stroke:var(--ink); stroke-width:1.2;}
+  svg.chart .iso{fill:none; stroke:var(--teal); stroke-width:1; opacity:0.55;}
+  svg.chart .iso-100{stroke-width:1.6; opacity:0.9;}
+  svg.chart .ent{fill:none; stroke:var(--orange); stroke-width:0.8; stroke-dasharray:3 3; opacity:0.7;}
+  svg.chart text{font-size:11px; fill:var(--ink-soft); font-family:inherit;}
+  svg.chart text.axis-label{font-size:12px; fill:var(--ink); font-weight:700;}
+  svg.chart .pt-a{fill:var(--teal); stroke:#fff; stroke-width:1.5;}
+  svg.chart .pt-b{fill:var(--orange); stroke:#fff; stroke-width:1.5;}
+
+  .chart-toggle{display:flex; align-items:center; gap:8px; font-size:13.5px; margin-top:8px;}
+  .chart-toggle input{width:18px; height:18px;}
+
+  .copybox textarea{
+    width:100%; min-height:90px; font-size:13px; font-family:ui-monospace,monospace;
+    border:1px solid var(--line); border-radius:4px; padding:8px; background:#fff; color:var(--ink);
+    resize:vertical;
+  }
+  .toast{
+    font-size:13px; color:var(--teal-dark); font-weight:600; margin-top:6px; min-height:18px;
+  }
+
+  dl.defs dt{font-weight:700; color:var(--teal-dark); margin-top:12px; font-size:14.5px;}
+  dl.defs dd{margin:4px 0 0; font-size:13.5px; color:var(--ink);}
+
+  footer.app-foot{
+    margin-top:24px; padding-top:14px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--ink-soft); text-align:center;
+  }
+
+  @media (max-width:360px){
+    .wrap{padding:14px 10px 40px;}
+    input[type=number]{width:72px;}
+  }
+
+  details.field{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:0 12px;
+    margin-bottom:14px;
+    background:var(--cream2);
+  }
+  details.field summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:13.5px;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    list-style:none;
+  }
+  details.field summary::-webkit-details-marker{display:none;}
+  details.field summary::before{content:"▸ "; color:var(--teal-dark); margin-right:4px;}
+  details.field[open] summary::before{content:"▾ ";}
+  details.field .details-body{padding:0 0 12px;}
+
+  input.p-input{min-width:120px; width:120px !important;}
+  @media (max-width:360px){
+    input.p-input{min-width:116px; width:116px !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app-head">
+    <h1>습공기선도 계산기</h1>
+    <p>온도·습도만 넣으면 함습량, 습구온도, 이슬점, 엔탈피, VPD까지 한번에</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" data-tab="calc" class="active" role="tab" aria-selected="true">계산</button>
+    <button type="button" data-tab="compare" role="tab" aria-selected="false">비교</button>
+    <button type="button" data-tab="learn" role="tab" aria-selected="false">배우기</button>
+  </nav>
+
+  <!-- ===================== 계산 탭 ===================== -->
+  <section id="pane-calc" class="pane active">
+
+    <div class="card">
+      <h2>입력</h2>
+
+      <details class="field" id="calc-P-details">
+        <summary id="calc-P-summary">기압 설정 · 기본 101.325 kPa</summary>
+        <div class="details-body">
+          <label for="calc-P-num">기압 P <span class="unit">(kPa, 80~110, 기본 101.325 = 표준대기압)</span></label>
+          <div class="row-inline">
+            <input type="number" class="p-input" id="calc-P-num" min="80" max="110" step="0.001" value="101.325" aria-label="기압 입력, 단위 킬로파스칼, 80에서 110 사이" />
+          </div>
+          <div class="field-error" id="calc-P-error"></div>
+        </div>
+      </details>
+
+      <div class="field">
+        <label>입력 방식</label>
+        <div class="radio-group">
+          <label><input type="radio" name="calc-mode" value="rh" checked /> 상대습도(RH) 기준</label>
+          <label><input type="radio" name="calc-mode" value="twb" /> 습구온도(Twb) 기준</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>건구온도 T <span class="unit" id="calc-T-echo">25.0 &deg;C</span></label>
+        <div class="row-inline">
+          <input type="range" id="calc-T-range" min="0" max="50" step="0.1" value="25" aria-label="건구온도 슬라이더, 0에서 50도씨" />
+          <input type="number" id="calc-T-num" min="0" max="50" step="0.1" value="25" aria-label="건구온도 입력, 0에서 50도씨" />
+        </div>
+      </div>
+
+      <div class="field" id="calc-rh-field">
+        <label>상대습도 RH <span class="unit" id="calc-RH-echo">50 %</span></label>
+        <div class="row-inline">
+          <input type="range" id="calc-RH-range" min="1" max="100" step="1" value="50" aria-label="상대습도 슬라이더, 1에서 100퍼센트" />
+          <input type="number" id="calc-RH-num" min="1" max="100" step="1" value="50" aria-label="상대습도 입력, 1에서 100퍼센트" />
+        </div>
+      </div>
+
+      <div class="field" id="calc-twb-field" style="display:none;">
+        <label for="calc-Twb-num">습구온도 Twb <span class="unit" id="calc-Twb-echo">18.0 &deg;C</span> <span class="unit">(T 이하)</span></label>
+        <div class="row-inline">
+          <input type="range" id="calc-Twb-range" min="0" max="50" step="0.1" value="18" aria-label="습구온도 슬라이더" />
+          <input type="number" id="calc-Twb-num" min="0" max="50" step="0.1" value="18" aria-label="습구온도 입력" />
+        </div>
+        <div class="field-error" id="calc-twb-error"></div>
+      </div>
+
+      <h3>예시로 보기</h3>
+      <div class="presets">
+        <button type="button" data-preset="25,50">상온 25&deg;C / 50%</button>
+        <button type="button" data-preset="18,70">온실 18&deg;C / 70%</button>
+        <button type="button" data-preset="20,85">온실 20&deg;C / 85%</button>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn secondary" id="calc-reset">초기화</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>습공기선도</h2>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 8px;">가로축은 건구온도, 세로축은 함습량입니다. 차트를 탭하면 그 위치의 온도·습도로 입력이 바뀝니다.</p>
+      <svg class="chart" id="calc-chart" viewBox="0 0 340 320" preserveAspectRatio="xMidYMid meet"></svg>
+      <label class="chart-toggle"><input type="checkbox" id="calc-show-enthalpy" /> 엔탈피선(주황 점선) 표시 <span class="unit">(선 옆 숫자 = h, kJ/kg 건조공기, 20 간격)</span></label>
+    </div>
+
+    <div class="card">
+      <h2>계산 결과</h2>
+      <table class="results" id="calc-results"></table>
+      <div class="btn-row">
+        <button type="button" class="btn accent" id="calc-copy">결과 복사</button>
+      </div>
+      <div class="toast" id="calc-toast"></div>
+      <div class="copybox" id="calc-copybox" style="display:none;">
+        <textarea id="calc-copytext" readonly></textarea>
+        <div class="notice">복사가 자동으로 안 되면 위 상자를 길게 눌러 전체 선택한 뒤 직접 복사하세요.</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===================== 비교 탭 ===================== -->
+  <section id="pane-compare" class="pane">
+
+    <div class="card">
+      <h2>A / B 상태 입력</h2>
+      <details class="field" id="cmp-P-details">
+        <summary id="cmp-P-summary">공유 기압 설정 · 기본 101.325 kPa</summary>
+        <div class="details-body">
+          <label for="cmp-P">공유 기압 P <span class="unit">(kPa, A·B 동일하게 적용)</span></label>
+          <input type="number" class="p-input" id="cmp-P" min="80" max="110" step="0.001" value="101.325" aria-label="비교탭 공유 기압 입력, 단위 킬로파스칼, 80에서 110 사이" />
+          <div class="field-error" id="cmp-P-error"></div>
+        </div>
+      </details>
+
+      <h3>상태 A</h3>
+      <div class="field">
+        <label>T<sub>A</sub> <span class="unit" id="cmp-TA-echo">25.0 &deg;C</span></label>
+        <div class="row-inline">
+          <input type="range" id="cmp-TA-range" min="0" max="50" step="0.1" value="25" aria-label="상태 A 건구온도 슬라이더" />
+          <input type="number" id="cmp-TA-num" min="0" max="50" step="0.1" value="25" aria-label="상태 A 건구온도 입력" />
+        </div>
+      </div>
+      <div class="field">
+        <label>RH<sub>A</sub> <span class="unit" id="cmp-RHA-echo">50 %</span></label>
+        <div class="row-inline">
+          <input type="range" id="cmp-RHA-range" min="1" max="100" step="1" value="50" aria-label="상태 A 상대습도 슬라이더" />
+          <input type="number" id="cmp-RHA-num" min="1" max="100" step="1" value="50" aria-label="상태 A 상대습도 입력" />
+        </div>
+      </div>
+
+      <h3>상태 B</h3>
+      <div class="field">
+        <label>T<sub>B</sub> <span class="unit" id="cmp-TB-echo">18.0 &deg;C</span></label>
+        <div class="row-inline">
+          <input type="range" id="cmp-TB-range" min="0" max="50" step="0.1" value="18" aria-label="상태 B 건구온도 슬라이더" />
+          <input type="number" id="cmp-TB-num" min="0" max="50" step="0.1" value="18" aria-label="상태 B 건구온도 입력" />
+        </div>
+      </div>
+      <div class="field">
+        <label>RH<sub>B</sub> <span class="unit" id="cmp-RHB-echo">70 %</span></label>
+        <div class="row-inline">
+          <input type="range" id="cmp-RHB-range" min="1" max="100" step="1" value="70" aria-label="상태 B 상대습도 슬라이더" />
+          <input type="number" id="cmp-RHB-num" min="1" max="100" step="1" value="70" aria-label="상태 B 상대습도 입력" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn accent" id="cmp-save">이 비교 저장</button>
+        <button type="button" class="btn secondary" id="cmp-load">저장값 불러오기</button>
+      </div>
+      <div class="toast" id="cmp-toast"></div>
+    </div>
+
+    <div class="card">
+      <h2>비교 결과</h2>
+      <div class="cmp-table" id="cmp-results"></div>
+      <div class="caveat">
+        주의: 이 비교는 두 상태의 차이만 표시하며, 혼합 비율·응결·열교환을 계산하지 않습니다.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>비교 차트</h2>
+      <svg class="chart" id="cmp-chart" viewBox="0 0 340 320" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+
+  </section>
+
+  <!-- ===================== 배우기 탭 ===================== -->
+  <section id="pane-learn" class="pane">
+
+    <div class="card">
+      <h2>용어와 단위</h2>
+      <dl class="defs">
+        <dt>건구온도 T (&deg;C)</dt>
+        <dd>일반 온도계로 재는 공기 온도입니다.</dd>
+
+        <dt>상대습도 RH (%)</dt>
+        <dd>그 온도에서의 포화수증기압(Psat) 대비 현재 수증기압(Pw)의 비율입니다. RH = Pw / Psat &times; 100. (수증기 "질량"의 비율이 아니라 "압력"의 비율이며, 질량 기준 비율은 아래 "포화도"로 따로 표시됩니다.)</dd>
+
+        <dt>함습량(공조 절대습도) W (g/kg 건조공기)</dt>
+        <dd>건조한 공기 1kg에 섞여 있는 수증기의 질량(g)입니다. 온도가 바뀌어도 수증기를 더하거나 빼지 않으면 값이 변하지 않아서, 환기·가습 전후 비교에 가장 유용한 값입니다.</dd>
+
+        <dt>습구온도 Twb (&deg;C)</dt>
+        <dd>젖은 거즈로 감싼 온도계가 보여주는 온도로, 물이 증발하며 열을 빼앗아가는 정도를 나타냅니다. 항상 건구온도 이하입니다.</dd>
+
+        <dt>이슬점 / 서리점 Tdp (&deg;C)</dt>
+        <dd>지금 공기 중 수증기량을 그대로 두고 식혔을 때 응결이 시작되는 온도입니다. 물(액체) 표면 기준이면 이슬점, 얼음 표면 기준이면 서리점이라고 부르며, 이 계산기는 계산 온도가 0.01&deg;C(물의 삼중점) 이하일 때 얼음 공식을 사용합니다. 음수 온도라고 해서 항상 서리점으로 부르는 것은 아니며, 실제로 어떤 표면에 응결되는지에 따라 달라질 수 있습니다.</dd>
+
+        <dt>엔탈피 h (kJ/kg 건조공기)</dt>
+        <dd>건조공기 1kg과 그에 섞인 수증기가 가진 열량의 합입니다. 냉난방 부하를 계산할 때 기준이 됩니다.</dd>
+
+        <dt>수증기압 Pw / 포화수증기압 Psat (kPa)</dt>
+        <dd>공기 중 수증기가 실제로 미는 압력(Pw)과, 그 온도에서 공기가 수증기로 꽉 찼을 때의 압력(Psat)입니다. RH = Pw / Psat 관계입니다.</dd>
+
+        <dt>증기압부족 VPD (kPa)</dt>
+        <dd>Psat와 Pw의 차이로, 공기가 수증기를 더 받아들일 수 있는 여유를 나타냅니다. 값이 클수록 공기가 건조해 증산을 유도하는 대기 요구도가 커지지만, 실제 증산량은 작물 종류·기공(잎의 숨구멍) 반응·광량 등 여러 요인에 함께 좌우되므로 VPD만으로 증발 속도를 단정할 수 없습니다.</dd>
+
+        <dt>수증기밀도 (g/m³)</dt>
+        <dd>공기 1m³ 안에 들어있는 수증기의 질량입니다.</dd>
+      </dl>
+
+      <div class="caveat">
+        VPD 주의사항: 이 계산기의 VPD는 입력한 공기 온도를 기준으로 한 값입니다. 실제 식물 재배에서 말하는 "엽면 VPD"는 잎 표면 온도를 기준으로 하며, 잎 온도는 공기 온도와 다를 수 있습니다(냉방·직사광 등으로 수 &deg;C 차이 가능). VPD는 증산을 유도하는 대기 요구도일 뿐이고, 실제 증산은 작물 종류·기공 반응·광량 등에 따라 달라지므로 이 값은 참고용 근사치입니다. 정밀한 작물 관리에는 잎 온도를 함께 측정해야 합니다.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>습공기선도 읽는 법</h2>
+      <p style="font-size:14px;">가로축은 건구온도(&deg;C), 세로축은 함습량(g/kg)입니다. 휘어진 굵은 선이 상대습도 100%(포화) 곡선이고, 그 아래로 10%~90% 선이 차례로 깔려 있습니다. 한 점의 위치는 온도와 함습량을 동시에 나타내며, 같은 가로선(같은 함습량) 위에서 온도만 오르내리면 수증기량은 그대로인 채 상대습도만 바뀝니다. 점선은 엔탈피(열량)가 같은 선입니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>응결(이슬)에 대한 참고</h2>
+      <p style="font-size:14px;">공기 중 수증기량이 그대로여도, 공기가 닿는 표면의 온도가 그 공기의 이슬점보다 낮으면 그 표면에 물방울이 생깁니다(유리창 김서림, 온실 비닐 안쪽 물방울 등). 환기나 가습을 결정할 때는 실내 공기의 이슬점과 가장 차가운 표면(유리, 외벽, 야간 지붕 등)의 온도를 함께 고려하는 것이 실제 응결 방지에 도움이 됩니다. 이 계산기는 교육용 참고 도구이며 결로를 직접 측정하거나 보증하지 않습니다.</p>
+    </div>
+
+    <div class="card">
+      <h2>이 계산기가 쓰는 공식</h2>
+      <p style="font-size:14px;">ASHRAE Handbook – Fundamentals (2017) 1장의 습공기 물성 공식을, 그 공식을 그대로 구현한 오픈소스 라이브러리 <a href="https://github.com/psychrometrics/psychrolib" target="_blank" rel="noopener">PsychroLib</a>의 구조와 계수를 참고해 자바스크립트로 포팅했습니다. 포화수증기압은 0.01&deg;C(물의 삼중점)를 기준으로 얼음 위/물 위 공식을 구분해서 쓰고, 습구온도는 이분법(bisection)으로, 이슬점은 뉴턴-랩슨법으로 수치적으로 구합니다.</p>
+      <p style="font-size:13px;color:var(--ink-soft);">화면 구성은 <a href="https://gpe.letsgrow.com/psychro" target="_blank" rel="noopener">gpe.letsgrow.com/psychro</a>를, 수식 설명 방식은 <a href="https://blog.naver.com/hvackkw/222666029890" target="_blank" rel="noopener">blog.naver.com/hvackkw</a> 글을 참고해 한국어·모바일 환경에 맞게 새로 만든 교육용 도구이며, 특정 서비스의 복제품이 아닙니다.</p>
+      <h3>포함된 코드의 라이선스(PsychroLib, MIT)</h3>
+      <p style="font-size:12.5px;color:var(--ink-soft);">이 계산기의 수식 구현은 PsychroLib(MIT License)의 공식·계수 구조를 참고해 포팅한 것으로, 원 라이브러리의 라이선스 고지를 아래에 그대로 남깁니다.</p>
+      <pre style="font-size:11px; line-height:1.6; white-space:pre-wrap; background:var(--cream2); padding:10px; border-radius:4px; color:var(--ink-soft); font-family:ui-monospace,monospace;">The MIT License (MIT)
+
+Copyright (c) 2018-2020 The PsychroLib Contributors.
+Copyright (c) 2017 ASHRAE Handbook - Fundamentals (equations and coefficients).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+(원문: https://github.com/psychrometrics/psychrolib/blob/master/LICENSE.txt)</pre>
+      <div class="notice">
+        교육용 참고 도구입니다. 계측기가 아니므로 실제 환경/설비 설계, 안전·보증이 필요한 판단에는 검증된 계측 장비와 전문가 확인을 함께 사용하세요.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>아이폰에서 열기 안내</h2>
+      <p style="font-size:14px;">전달받은 공개 웹 주소를 아이폰의 Safari에서 여세요. 공유 메뉴에서 "홈 화면에 추가"를 선택하면 앱처럼 바로 열 수 있습니다. 메뉴 위치는 iOS 버전에 따라 다를 수 있습니다. 안드로이드는 Chrome 메뉴의 "홈 화면에 추가"를 이용하세요.</p>
+      <p style="font-size:14px;">앱을 처음 열거나 새로 불러올 때는 인터넷 연결이 필요합니다. 입력값 계산은 기기 안에서 처리되며 서버로 전송하지 않습니다. 다운로드한 HTML을 아이폰 파일 앱에서 미리보기로 열면 계산이 실행되지 않을 수 있으므로 웹 주소로 접속하는 방법을 권장합니다.</p>
+    </div>
+
+  </section>
+
+  <footer class="app-foot">
+    습공기선도 계산기 · 교육용 · ASHRAE Fundamentals 2017 기반 공식 구현
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ======================================================================
+     Psychro: ASHRAE 2017 ch.1 psychrometric formulas (SI units, Pa, kg/kg)
+     Ported from PsychroLib (MIT License) structure/coefficients.
+     ====================================================================== */
+  var MIN_HUM_RATIO = 1e-7;
+  var TRIPLE_POINT_C = 0.01;
+  var R_DA = 287.042;   // J/(kg_da . K)
+  var R_W  = 461.524;   // J/(kg_w . K)
+
+  function toK(tc){ return tc + 273.15; }
+
+  function satVapPres(T){
+    // T in degC -> Pa
+    var TK = toK(T);
+    var lnPws;
+    if (T <= TRIPLE_POINT_C){
+      lnPws = -5.6745359e3/TK + 6.3925247 - 9.677843e-3*TK + 6.2215701e-7*TK*TK
+            + 2.0747825e-9*Math.pow(TK,3) - 9.484024e-13*Math.pow(TK,4) + 4.1635019*Math.log(TK);
+    } else {
+      lnPws = -5.8002206e3/TK + 1.3914993 - 4.8640239e-2*TK + 4.1764768e-5*TK*TK
+            - 1.4452093e-8*Math.pow(TK,3) + 6.5459673*Math.log(TK);
+    }
+    return Math.exp(lnPws);
+  }
+
+  function dLnPws(T){
+    var TK = toK(T);
+    if (T <= TRIPLE_POINT_C){
+      return 5.6745359e3/(TK*TK) - 9.677843e-3 + 2*6.2215701e-7*TK
+           + 3*2.0747825e-9*TK*TK - 4*9.484024e-13*Math.pow(TK,3) + 4.1635019/TK;
+    } else {
+      return 5.8002206e3/(TK*TK) - 4.8640239e-2 + 2*4.1764768e-5*TK
+           - 3*1.4452093e-8*TK*TK + 6.5459673/TK;
+    }
+  }
+
+  function vapPresFromRelHum(T, rh){ return clampRH(rh) * satVapPres(T); }
+  function relHumFromVapPres(T, pw){ return pw / satVapPres(T); }
+  function clampRH(rh){ return Math.min(Math.max(rh,0),1); }
+
+  function humRatioFromVapPres(pw, P){
+    var W = 0.621945 * pw / (P - pw);
+    return Math.max(W, MIN_HUM_RATIO);
+  }
+  function vapPresFromHumRatio(W, P){
+    var bw = Math.max(W, MIN_HUM_RATIO);
+    return P * bw / (0.621945 + bw);
+  }
+  function satHumRatio(T, P){
+    var pws = satVapPres(T);
+    return Math.max(0.621945 * pws / (P - pws), MIN_HUM_RATIO);
+  }
+  function humRatioFromRelHum(T, rh, P){ return humRatioFromVapPres(vapPresFromRelHum(T, rh), P); }
+  function relHumFromHumRatio(T, W, P){ return relHumFromVapPres(T, vapPresFromHumRatio(W, P)); }
+
+  function tDewPointFromVapPres(T, pw){
+    var Tdp = T;
+    var lnVP = Math.log(pw);
+    for (var i=0; i<60; i++){
+      var lnVPiter = Math.log(satVapPres(Tdp));
+      var d = dLnPws(Tdp);
+      var next = Tdp - (lnVPiter - lnVP) / d;
+      next = Math.min(Math.max(next, -100), 200);
+      if (Math.abs(next - Tdp) <= 1e-7){ Tdp = next; break; }
+      Tdp = next;
+    }
+    return Math.min(Tdp, T);
+  }
+  function tDewPointFromHumRatio(T, W, P){
+    return tDewPointFromVapPres(T, vapPresFromHumRatio(W, P));
+  }
+
+  // Raw (unclamped) wet-bulb -> hum ratio. May be negative for physically inconsistent (T, Twb) pairs.
+  function humRatioFromTWetBulbRaw(T, Twb, P){
+    var Wsstar = satHumRatio(Twb, P);
+    var W;
+    if (Twb >= 0){
+      W = ((2501 - 2.326*Twb) * Wsstar - 1.006*(T - Twb)) / (2501 + 1.86*T - 4.186*Twb);
+    } else {
+      W = ((2830 - 0.24*Twb) * Wsstar - 1.006*(T - Twb)) / (2830 + 1.86*T - 2.1*Twb);
+    }
+    return W;
+  }
+
+  // Clamped version used internally by the tWetBulbFromHumRatio bisection search (needs a
+  // well-defined positive candidate at every trial Twb, including ones outside physical range).
+  function humRatioFromTWetBulb(T, Twb, P){
+    return Math.max(humRatioFromTWetBulbRaw(T, Twb, P), MIN_HUM_RATIO);
+  }
+
+  function tWetBulbFromHumRatio(T, W, P){
+    var bw = Math.max(W, MIN_HUM_RATIO);
+    var pw = vapPresFromHumRatio(bw, P);
+    var Tdp = Math.min(tDewPointFromVapPres(T, pw), T);
+    var sup = T, inf = Tdp, mid = (sup+inf)/2;
+    for (var i=0; i<100; i++){
+      var wstar = humRatioFromTWetBulb(T, mid, P);
+      if (wstar > bw){ sup = mid; } else { inf = mid; }
+      mid = (sup+inf)/2;
+      if ((sup - inf) <= 1e-6) break;
+    }
+    return mid;
+  }
+
+  function moistAirEnthalpy(T, W){
+    var bw = Math.max(W, MIN_HUM_RATIO);
+    return 1.006*T + bw*(2501 + 1.86*T); // kJ/kg dry air
+  }
+
+  function vaporPressureDeficit(T, W, P){
+    var rh = relHumFromHumRatio(T, W, P);
+    return satVapPres(T) * (1 - rh); // Pa
+  }
+
+  function degreeOfSaturation(T, W, P){
+    return Math.max(W, MIN_HUM_RATIO) / satHumRatio(T, P);
+  }
+
+  function moistAirVolume(T, W, P){
+    var bw = Math.max(W, MIN_HUM_RATIO);
+    return R_DA * toK(T) * (1 + 1.607858*bw) / P; // m3/kg dry air
+  }
+  function moistAirDensity(T, W, P){
+    var bw = Math.max(W, MIN_HUM_RATIO);
+    return (1+bw) / moistAirVolume(T, bw, P);
+  }
+  function vaporDensity(T, W, P){
+    var pw = vapPresFromHumRatio(W, P);
+    return pw / (R_W * toK(T)); // kg/m3
+  }
+
+  // Full state from T, RH (0..1), P (Pa)
+  function calcFromTRH(T, rh, P){
+    var pws = satVapPres(T);
+    var pw = vapPresFromRelHum(T, rh);
+    var W = humRatioFromVapPres(pw, P);
+    var Tdp = tDewPointFromVapPres(T, pw);
+    var Twb = tWetBulbFromHumRatio(T, W, P);
+    var h = moistAirEnthalpy(T, W);
+    var vpd = pws - pw;
+    var vd = vaporDensity(T, W, P);
+    var dos = degreeOfSaturation(T, W, P);
+    return {T:T, RH:rh, P:P, Psat:pws, Pw:pw, W:W, Tdp:Tdp, Twb:Twb, h:h, VPD:vpd, vaporDensity:vd, DoS:dos};
+  }
+
+  // Full state from T, Twb (robust, non-iterative direction), P (Pa).
+  // Returns {ok:true, ...fields} on a physically valid combination, or
+  // {ok:false, error:"..."} when Twb > T or the implied humidity ratio is <= 0
+  // (i.e. no real moist-air state exists for that T/Twb pair). Callers must
+  // check `ok` before using the result instead of silently clamping.
+  function calcFromTTwb(T, Twb, P){
+    if (Twb > T + 1e-9){
+      return { ok:false, error:"습구온도는 건구온도보다 높을 수 없습니다." };
+    }
+    var Wraw = humRatioFromTWetBulbRaw(T, Twb, P);
+    if (!isFinite(Wraw) || Wraw <= 0){
+      return { ok:false, error:"이 건구온도·습구온도 조합은 물리적으로 불가능합니다(계산된 함습량이 0 이하). 습구온도를 높이거나 건구온도를 낮춰보세요." };
+    }
+    var W = Wraw;
+    var rh = relHumFromHumRatio(T, W, P);
+    if (rh > 1 + 1e-6){
+      return { ok:false, error:"이 조합은 포화(RH 100%)를 넘어섭니다. 습구온도를 낮추거나 건구온도를 높여보세요." };
+    }
+    var pws = satVapPres(T);
+    var pw = vapPresFromHumRatio(W, P);
+    var Tdp = tDewPointFromHumRatio(T, W, P);
+    var h = moistAirEnthalpy(T, W);
+    var vpd = pws - pw;
+    var vd = vaporDensity(T, W, P);
+    var dos = degreeOfSaturation(T, W, P);
+    return { ok:true, T:T, RH:Math.min(rh,1), P:P, Psat:pws, Pw:pw, W:W, Tdp:Tdp, Twb:Twb, h:h, VPD:Math.max(vpd,0), vaporDensity:vd, DoS:dos };
+  }
+
+  function calculateSimple(T, RH, P_kPa){
+    // Convenience wrapper: T in degC, RH ALWAYS in percent 0..100 (strict), P in kPa (default 101.325).
+    var rhFrac = RH / 100;
+    var Ppa = (P_kPa || 101.325) * 1000;
+    return calcFromTRH(T, rhFrac, Ppa);
+  }
+
+  window.Psychro = {
+    toK: toK,
+    calculate: calculateSimple,
+    satVapPres: satVapPres,
+    dLnPws: dLnPws,
+    vapPresFromRelHum: vapPresFromRelHum,
+    relHumFromVapPres: relHumFromVapPres,
+    humRatioFromVapPres: humRatioFromVapPres,
+    vapPresFromHumRatio: vapPresFromHumRatio,
+    satHumRatio: satHumRatio,
+    humRatioFromRelHum: humRatioFromRelHum,
+    relHumFromHumRatio: relHumFromHumRatio,
+    tDewPointFromVapPres: tDewPointFromVapPres,
+    tDewPointFromHumRatio: tDewPointFromHumRatio,
+    humRatioFromTWetBulb: humRatioFromTWetBulb,
+    humRatioFromTWetBulbRaw: humRatioFromTWetBulbRaw,
+    tWetBulbFromHumRatio: tWetBulbFromHumRatio,
+    moistAirEnthalpy: moistAirEnthalpy,
+    vaporPressureDeficit: vaporPressureDeficit,
+    degreeOfSaturation: degreeOfSaturation,
+    moistAirVolume: moistAirVolume,
+    moistAirDensity: moistAirDensity,
+    vaporDensity: vaporDensity,
+    calcFromTRH: calcFromTRH,
+    calcFromTTwb: calcFromTTwb
+  };
+
+  /* ======================================================================
+     localStorage guard
+     ====================================================================== */
+  var LS = (function(){
+    try{
+      var k = "__psychro_test__";
+      window.localStorage.setItem(k, "1");
+      window.localStorage.removeItem(k);
+      return window.localStorage;
+    }catch(e){ return null; }
+  })();
+  function lsSet(key, val){ if(!LS) return false; try{ LS.setItem(key, JSON.stringify(val)); return true; }catch(e){ return false; } }
+  function lsGet(key){ if(!LS) return null; try{ var v = LS.getItem(key); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+
+  /* ======================================================================
+     Formatting helpers
+     ====================================================================== */
+  function fmt(n, d){ if(!isFinite(n)) return "–"; return n.toFixed(d); }
+  function kPa(pa){ return pa/1000; }
+
+  /* ======================================================================
+     Chart rendering
+     ====================================================================== */
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var CHART_W = 340, CHART_H = 320;
+  var MARGIN = {l:42, r:32, t:16, b:34};
+  var PLOT_W = CHART_W - MARGIN.l - MARGIN.r;
+  var PLOT_H = CHART_H - MARGIN.t - MARGIN.b;
+  var T_MIN = 0, T_MAX = 50;
+
+  function niceStep(approx){
+    if (approx <= 0) return 1;
+    var mag = Math.pow(10, Math.floor(Math.log10(approx)));
+    var norm = approx / mag;
+    var step;
+    if (norm < 1.5) step = 1;
+    else if (norm < 3) step = 2;
+    else if (norm < 7) step = 5;
+    else step = 10;
+    return step * mag;
+  }
+
+  function el(tag, attrs, text){
+    var e = document.createElementNS(SVG_NS, tag);
+    for (var k in attrs){ e.setAttribute(k, attrs[k]); }
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function buildChart(svg, P, showEnthalpy, points){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var wMax = Psychro.satHumRatio(T_MAX, P) * 1000; // g/kg at 50C, RH100 = global max in this domain
+    wMax = wMax * 1.08;
+    var wStep = niceStep(wMax/6);
+    var wTop = Math.ceil(wMax / wStep) * wStep;
+
+    function xS(t){ return MARGIN.l + (t - T_MIN) / (T_MAX - T_MIN) * PLOT_W; }
+    function yS(w){ return MARGIN.t + (1 - (w - 0) / (wTop - 0)) * PLOT_H; }
+    function xInv(px){ return T_MIN + (px - MARGIN.l) / PLOT_W * (T_MAX - T_MIN); }
+    function yInv(py){ return (1 - (py - MARGIN.t) / PLOT_H) * wTop; }
+
+    svg._xInv = xInv; svg._yInv = yInv; svg._wTop = wTop;
+
+    // plot background box
+    svg.appendChild(el("rect", {x:MARGIN.l, y:MARGIN.t, width:PLOT_W, height:PLOT_H, fill:"none", stroke:"var(--line)"}));
+
+    // grid + ticks: T axis every 10
+    for (var t=T_MIN; t<=T_MAX; t+=10){
+      var gx = xS(t);
+      svg.appendChild(el("line", {class:"grid", x1:gx, y1:MARGIN.t, x2:gx, y2:MARGIN.t+PLOT_H}));
+      svg.appendChild(el("text", {x:gx, y:MARGIN.t+PLOT_H+14, "text-anchor":"middle"}, String(t)));
+    }
+    svg.appendChild(el("text", {class:"axis-label", x:MARGIN.l+PLOT_W/2, y:CHART_H-2, "text-anchor":"middle"}, "건구온도 T (°C)"));
+
+    // grid + ticks: W axis
+    for (var w=0; w<=wTop+0.001; w+=wStep){
+      var gy = yS(w);
+      svg.appendChild(el("line", {class:"grid", x1:MARGIN.l, y1:gy, x2:MARGIN.l+PLOT_W, y2:gy}));
+      svg.appendChild(el("text", {x:MARGIN.l-5, y:gy+3, "text-anchor":"end"}, String(Math.round(w))));
+    }
+    var ylabel = el("text", {class:"axis-label", x:10, y:MARGIN.t+PLOT_H/2, "text-anchor":"middle", transform:"rotate(-90 10 "+(MARGIN.t+PLOT_H/2)+")"}, "함습량 W (g/kg 건조공기)");
+    svg.appendChild(ylabel);
+
+    // axes
+    svg.appendChild(el("line", {class:"axis", x1:MARGIN.l, y1:MARGIN.t, x2:MARGIN.l, y2:MARGIN.t+PLOT_H}));
+    svg.appendChild(el("line", {class:"axis", x1:MARGIN.l, y1:MARGIN.t+PLOT_H, x2:MARGIN.l+PLOT_W, y2:MARGIN.t+PLOT_H}));
+
+    // RH isolines 10..100
+    var rhLevels = [10,20,30,40,50,60,70,80,90,100];
+    rhLevels.forEach(function(rh){
+      var d = "";
+      for (var tt=T_MIN; tt<=T_MAX; tt+=1){
+        var ww = Psychro.humRatioFromRelHum(tt, rh/100, P) * 1000;
+        if (ww > wTop) { continue; }
+        var px = xS(tt), py = yS(ww);
+        d += (d==="" ? "M" : " L") + px.toFixed(1) + "," + py.toFixed(1);
+      }
+      if (d !== ""){
+        var cls = "iso" + (rh===100 ? " iso-100" : "");
+        svg.appendChild(el("path", {class:cls, d:d}));
+        if (rh===20 || rh===40 || rh===60 || rh===80 || rh===100){
+          var wEnd = Math.min(Psychro.humRatioFromRelHum(T_MAX, rh/100, P)*1000, wTop);
+          svg.appendChild(el("text", {x:xS(T_MAX)+2, y:yS(wEnd)+3}, rh+"%"));
+        }
+      }
+    });
+
+    // enthalpy lines (optional) -- each line labeled with its h value (kJ/kg dry air)
+    if (showEnthalpy){
+      var hLevels = [20,40,60,80,100,120,140,160];
+      hLevels.forEach(function(hv){
+        var d = "";
+        var firstPt = null, lastPt = null;
+        for (var tt=T_MIN; tt<=T_MAX; tt+=1){
+          var wkg = (hv - 1.006*tt) / (2501 + 1.86*tt); // kg/kg
+          var wg = wkg*1000;
+          var satg = Psychro.satHumRatio(tt, P)*1000;
+          if (wg < 0 || wg > wTop || wg > satg) continue;
+          var px = xS(tt), py = yS(wg);
+          if (!firstPt) firstPt = {x:px, y:py};
+          lastPt = {x:px, y:py};
+          d += (d==="" ? "M" : " L") + px.toFixed(1) + "," + py.toFixed(1);
+        }
+        if (d !== ""){
+          svg.appendChild(el("path", {class:"ent", d:d}));
+          var labelPt = firstPt.y < lastPt.y ? firstPt : lastPt; // label near the higher (less crowded) end
+          svg.appendChild(el("text", {x:labelPt.x+3, y:labelPt.y-3, fill:"var(--orange)", "font-size":"8.5"}, String(hv)));
+        }
+      });
+      svg.appendChild(el("text", {x:MARGIN.l+4, y:MARGIN.t+11, fill:"var(--orange)", "font-size":"9.5", "font-weight":"700"}, "엔탈피 h (kJ/kg, 20 간격)"));
+    }
+
+    // points
+    (points||[]).forEach(function(p){
+      var px = xS(p.T), py = yS(p.W*1000);
+      svg.appendChild(el("circle", {class:p.cls||"pt-a", cx:px, cy:py, r:5}));
+      if (p.label){
+        svg.appendChild(el("text", {x:px+7, y:py-6, "font-weight":"700", fill:p.color||"var(--ink)"}, p.label));
+      }
+    });
+  }
+
+  function attachTap(svg, onTap){
+    svg.addEventListener("click", function(e){
+      var pt = svg.createSVGPoint ? svg.createSVGPoint() : null;
+      var loc;
+      if (pt){
+        pt.x = e.clientX; pt.y = e.clientY;
+        loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+      } else {
+        var rect = svg.getBoundingClientRect();
+        loc = { x:(e.clientX-rect.left)/rect.width*CHART_W, y:(e.clientY-rect.top)/rect.height*CHART_H };
+      }
+      if (!svg._xInv) return;
+      var T = Math.min(Math.max(svg._xInv(loc.x), T_MIN), T_MAX);
+      var Wg = Math.min(Math.max(svg._yInv(loc.y), 0), svg._wTop);
+      onTap(T, Wg);
+    });
+  }
+
+  /* ======================================================================
+     Synced range/number pair helper
+     - Range input: always a valid number in [min,max], committed immediately.
+     - Number input 'input' event: allows blank/partial/decimal typing without
+       rewriting the field on every keystroke; only commits (updates range +
+       calls cb) once the typed value parses to a finite number inside
+       [min,max]. The field itself is left alone so the user can keep typing.
+     - Number input 'change' event (blur/Enter): validates once more and
+       normalizes the displayed value -- clamps out-of-range input back into
+       range and restores the last valid value if left blank/unparseable, so
+       the field never silently disagrees with the committed state.
+     ====================================================================== */
+  function syncPair(rangeEl, numEl, min, max, cb){
+    function commit(v){
+      v = Math.min(Math.max(v, min), max);
+      rangeEl.value = v;
+      numEl.value = v;
+      cb(v);
+    }
+    rangeEl.addEventListener("input", function(){ commit(parseFloat(rangeEl.value)); });
+    numEl.addEventListener("input", function(){
+      var raw = numEl.value;
+      if (raw === "" || raw === "-" || raw === ".") return; // let the user keep typing
+      var v = parseFloat(raw);
+      if (isNaN(v) || v < min || v > max) return; // not a committable value yet
+      rangeEl.value = v;
+      cb(v); // live update without rewriting numEl.value
+    });
+    numEl.addEventListener("change", function(){
+      var raw = numEl.value;
+      var v = parseFloat(raw);
+      if (raw === "" || isNaN(v)){
+        v = parseFloat(rangeEl.value); // revert to last committed value
+      }
+      commit(v); // clamps + normalizes the displayed value explicitly
+    });
+    return { set: function(v){ commit(v); } };
+  }
+
+  /* ======================================================================
+     CALC TAB
+     ====================================================================== */
+  var calcState = { T:25, RH:50, Twb:18, P:101.325, mode:"rh", showEnthalpy:false, pValid:true };
+
+  var calcTEcho = document.getElementById("calc-T-echo");
+  var calcRHEcho = document.getElementById("calc-RH-echo");
+  var calcTwbEcho = document.getElementById("calc-Twb-echo");
+  var calcRHField = document.getElementById("calc-rh-field");
+  var calcTwbField = document.getElementById("calc-twb-field");
+  var calcChart = document.getElementById("calc-chart");
+  var calcResultsTable = document.getElementById("calc-results");
+  var calcPNum = document.getElementById("calc-P-num");
+  var calcPError = document.getElementById("calc-P-error");
+  var calcPSummary = document.getElementById("calc-P-summary");
+  var calcTwbError = document.getElementById("calc-twb-error");
+
+  // Shared pressure validator: rejects empty/non-numeric/out-of-range input
+  // with a specific Korean message instead of silently clamping it.
+  function validateP(raw){
+    if (raw === null || raw === undefined || String(raw).trim() === ""){
+      return { ok:false, msg:"기압 값을 입력하세요." };
+    }
+    var v = parseFloat(raw);
+    if (isNaN(v)){
+      return { ok:false, msg:"숫자를 입력하세요." };
+    }
+    if (v < 80 || v > 110){
+      return { ok:false, msg:"80~110 kPa 범위 안에서 입력하세요." };
+    }
+    return { ok:true, v:v };
+  }
+
+  var calcTPair = syncPair(document.getElementById("calc-T-range"), document.getElementById("calc-T-num"), 0, 50, function(v){
+    calcState.T = v;
+    // keep twb <= T
+    var twbMax = v;
+    var twbEl = document.getElementById("calc-Twb-range");
+    twbEl.max = twbMax;
+    document.getElementById("calc-Twb-num").max = twbMax;
+    if (calcState.Twb > twbMax) calcTwbPair.set(twbMax);
+    calcTEcho.textContent = fmt(v,1) + " °C";
+    renderCalc();
+  });
+  var calcRHPair = syncPair(document.getElementById("calc-RH-range"), document.getElementById("calc-RH-num"), 1, 100, function(v){
+    calcState.RH = v;
+    calcRHEcho.textContent = Math.round(v) + " %";
+    renderCalc();
+  });
+  var calcTwbPair = syncPair(document.getElementById("calc-Twb-range"), document.getElementById("calc-Twb-num"), 0, 50, function(v){
+    calcState.Twb = v;
+    calcTwbEcho.textContent = fmt(v,1) + " °C";
+    renderCalc();
+  });
+
+  function applyPValidation(r){
+    if (r.ok){
+      calcPError.classList.remove("show");
+      calcPNum.classList.remove("invalid");
+      calcState.P = r.v;
+      calcState.pValid = true;
+      calcPSummary.textContent = "기압 설정 · 현재 " + r.v + " kPa";
+    } else {
+      calcPError.textContent = r.msg;
+      calcPError.classList.add("show");
+      calcPNum.classList.add("invalid");
+      calcState.pValid = false;
+      calcPSummary.textContent = "기압 설정 · 입력값을 확인하세요";
+    }
+  }
+
+  calcPNum.addEventListener("input", function(){
+    applyPValidation(validateP(calcPNum.value));
+    renderCalc();
+  });
+  calcPNum.addEventListener("change", function(){
+    // On blur/enter, an empty field reverts to the last valid pressure instead
+    // of staying blank, so the displayed field never disagrees with the state.
+    if (String(calcPNum.value).trim() === "" && calcState.pValid){
+      calcPNum.value = calcState.P;
+      applyPValidation(validateP(calcPNum.value));
+      renderCalc();
+    }
+  });
+
+  document.querySelectorAll('input[name="calc-mode"]').forEach(function(r){
+    r.addEventListener("change", function(){
+      calcState.mode = r.value;
+      calcRHField.style.display = (calcState.mode === "rh") ? "" : "none";
+      calcTwbField.style.display = (calcState.mode === "twb") ? "" : "none";
+      calcTwbError.classList.remove("show");
+      renderCalc();
+    });
+  });
+
+  document.getElementById("calc-show-enthalpy").addEventListener("change", function(e){
+    calcState.showEnthalpy = e.target.checked;
+    renderCalc();
+  });
+
+  document.querySelectorAll(".presets button").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var parts = btn.getAttribute("data-preset").split(",");
+      calcState.mode = "rh";
+      document.querySelector('input[name="calc-mode"][value="rh"]').checked = true;
+      calcRHField.style.display = "";
+      calcTwbField.style.display = "none";
+      calcTPair.set(parseFloat(parts[0]));
+      calcRHPair.set(parseFloat(parts[1]));
+    });
+  });
+
+  document.getElementById("calc-reset").addEventListener("click", function(){
+    calcState = { T:25, RH:50, Twb:18, P:101.325, mode:"rh", showEnthalpy:false, pValid:true };
+    document.querySelector('input[name="calc-mode"][value="rh"]').checked = true;
+    calcRHField.style.display = "";
+    calcTwbField.style.display = "none";
+    calcTwbError.classList.remove("show");
+    document.getElementById("calc-show-enthalpy").checked = false;
+    calcPNum.value = 101.325;
+    applyPValidation(validateP(101.325));
+    calcTPair.set(25);
+    calcRHPair.set(50);
+    calcTwbPair.set(18);
+    renderCalc();
+  });
+
+  attachTap(calcChart, function(T, Wg){
+    var Ppa = calcState.P * 1000;
+    var rh = Psychro.relHumFromHumRatio(T, Wg/1000, Ppa);
+    if (rh > 1){
+      Wg = Psychro.satHumRatio(T, Ppa) * 1000;
+      rh = 1;
+    }
+    calcState.mode = "rh";
+    document.querySelector('input[name="calc-mode"][value="rh"]').checked = true;
+    calcRHField.style.display = "";
+    calcTwbField.style.display = "none";
+    calcTPair.set(Math.round(T*10)/10);
+    calcRHPair.set(Math.max(1, Math.round(rh*100)));
+  });
+
+  function renderCalcResults(res){
+    var rows = [
+      ["함습량 W (공조 절대습도)", fmt(res.W*1000,2), "g/kg 건조공기"],
+      ["상대습도 RH", fmt(res.RH*100,1), "%"],
+      ["습구온도 Twb", fmt(res.Twb,1), "°C"],
+      [res.Tdp>=0 ? "이슬점 Tdp" : "서리점 Tdp", fmt(res.Tdp,1), "°C"],
+      ["엔탈피 h", fmt(res.h,2), "kJ/kg 건조공기"],
+      ["수증기압 Pw", fmt(kPa(res.Pw),3), "kPa"],
+      ["포화수증기압 Psat", fmt(kPa(res.Psat),3), "kPa"],
+      ["증기압부족 VPD", fmt(kPa(res.VPD),3), "kPa"],
+      ["수증기밀도", fmt(res.vaporDensity*1000,2), "g/m³"],
+      ["포화도(참고)", fmt(res.DoS*100,1), "%"]
+    ];
+    calcResultsTable.innerHTML = rows.map(function(r){
+      return "<tr><td class='label'>"+r[0]+"</td><td class='val'>"+r[1]+"<span class='u'>"+r[2]+"</span></td></tr>";
+    }).join("");
+    return rows;
+  }
+
+  function showResultsBlocked(msg){
+    calcResultsTable.innerHTML = "<tr><td class='calc-blocked-msg' colspan='2'>"+msg+"</td></tr>";
+    while (calcChart.firstChild) calcChart.removeChild(calcChart.firstChild);
+    var warn = el("text", {x:16, y:28, fill:"var(--danger)", "font-size":"13"}, "입력값을 확인하세요");
+    calcChart.appendChild(warn);
+    lastCalcRows = null;
+    lastCalcMeta = null;
+  }
+
+  var lastCalcRows = null;
+  var lastCalcMeta = null;
+  function renderCalc(){
+    if (!calcState.pValid){
+      showResultsBlocked("기압 값이 유효하지 않아 결과를 계산할 수 없습니다. 위 기압 설정을 먼저 확인하세요.");
+      return;
+    }
+    var Ppa = calcState.P * 1000;
+    var res;
+    if (calcState.mode === "twb"){
+      if (calcState.Twb > calcState.T + 1e-9){
+        calcTwbError.textContent = "습구온도는 건구온도보다 높을 수 없습니다. T를 올리거나 Twb를 낮추세요.";
+        calcTwbError.classList.add("show");
+        showResultsBlocked("습구온도 입력을 확인하세요(위 오류 메시지 참고).");
+        return;
+      }
+      var r = Psychro.calcFromTTwb(calcState.T, calcState.Twb, Ppa);
+      if (!r.ok){
+        calcTwbError.textContent = r.error;
+        calcTwbError.classList.add("show");
+        showResultsBlocked("이 습구온도 조합은 계산할 수 없습니다(위 오류 메시지 참고).");
+        return;
+      }
+      calcTwbError.classList.remove("show");
+      res = r;
+    } else {
+      res = Psychro.calcFromTRH(calcState.T, calcState.RH/100, Ppa);
+    }
+    lastCalcRows = renderCalcResults(res);
+    lastCalcMeta = { T: calcState.T, P: calcState.P, mode: calcState.mode, Twb: calcState.mode==="twb" ? calcState.Twb : null };
+    buildChart(calcChart, Ppa, calcState.showEnthalpy, [
+      { T:res.T, W:res.W, cls:"pt-a", label:"현재", color:"var(--teal-dark)" }
+    ]);
+    lsSet("psychro_calc_state", calcState);
+  }
+
+  document.getElementById("calc-copy").addEventListener("click", function(){
+    var toast = document.getElementById("calc-toast");
+    var box = document.getElementById("calc-copybox");
+    if (!lastCalcRows || !lastCalcMeta){
+      toast.textContent = "먼저 입력값을 확인해 유효한 결과를 계산하세요.";
+      box.style.display = "none";
+      return;
+    }
+    var metaLines = [
+      "건구온도 T: " + fmt(lastCalcMeta.T,1) + " °C",
+      "기압 P: " + fmt(lastCalcMeta.P,3) + " kPa",
+      lastCalcMeta.mode === "twb"
+        ? "입력 방식: 습구온도 기준 (Twb = " + fmt(lastCalcMeta.Twb,1) + " °C)"
+        : "입력 방식: 상대습도 기준"
+    ];
+    var text = metaLines.concat(lastCalcRows.map(function(r){ return r[0]+": "+r[1]+" "+r[2]; })).join("\n");
+    var ta = document.getElementById("calc-copytext");
+    ta.value = text;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        toast.textContent = "결과를 복사했습니다.";
+        box.style.display = "none";
+      }).catch(function(){
+        toast.textContent = "자동 복사에 실패했습니다. 아래 상자에서 직접 선택해 복사하세요.";
+        box.style.display = "";
+        ta.focus(); ta.select();
+      });
+    } else {
+      toast.textContent = "이 환경은 자동 복사를 지원하지 않습니다. 아래 상자에서 직접 선택해 복사하세요.";
+      box.style.display = "";
+      ta.focus(); ta.select();
+    }
+  });
+
+  /* ======================================================================
+     COMPARE TAB
+     ====================================================================== */
+  var cmpState = { P:101.325, A:{T:25, RH:50}, B:{T:18, RH:70}, pValid:true };
+  var cmpChart = document.getElementById("cmp-chart");
+  var cmpResultsTable = document.getElementById("cmp-results");
+  var cmpPNum = document.getElementById("cmp-P");
+  var cmpPError = document.getElementById("cmp-P-error");
+  var cmpPSummary = document.getElementById("cmp-P-summary");
+
+  var cmpTA = syncPair(document.getElementById("cmp-TA-range"), document.getElementById("cmp-TA-num"), 0, 50, function(v){
+    cmpState.A.T = v; document.getElementById("cmp-TA-echo").textContent = fmt(v,1)+" °C"; renderCompare();
+  });
+  var cmpRHA = syncPair(document.getElementById("cmp-RHA-range"), document.getElementById("cmp-RHA-num"), 1, 100, function(v){
+    cmpState.A.RH = v; document.getElementById("cmp-RHA-echo").textContent = Math.round(v)+" %"; renderCompare();
+  });
+  var cmpTB = syncPair(document.getElementById("cmp-TB-range"), document.getElementById("cmp-TB-num"), 0, 50, function(v){
+    cmpState.B.T = v; document.getElementById("cmp-TB-echo").textContent = fmt(v,1)+" °C"; renderCompare();
+  });
+  var cmpRHB = syncPair(document.getElementById("cmp-RHB-range"), document.getElementById("cmp-RHB-num"), 1, 100, function(v){
+    cmpState.B.RH = v; document.getElementById("cmp-RHB-echo").textContent = Math.round(v)+" %"; renderCompare();
+  });
+
+  function applyCmpPValidation(r){
+    if (r.ok){
+      cmpPError.classList.remove("show");
+      cmpPNum.classList.remove("invalid");
+      cmpState.P = r.v;
+      cmpState.pValid = true;
+      cmpPSummary.textContent = "공유 기압 설정 · 현재 " + r.v + " kPa";
+    } else {
+      cmpPError.textContent = r.msg;
+      cmpPError.classList.add("show");
+      cmpPNum.classList.add("invalid");
+      cmpState.pValid = false;
+      cmpPSummary.textContent = "공유 기압 설정 · 입력값을 확인하세요";
+    }
+  }
+
+  cmpPNum.addEventListener("input", function(){
+    applyCmpPValidation(validateP(cmpPNum.value));
+    renderCompare();
+  });
+  cmpPNum.addEventListener("change", function(){
+    if (String(cmpPNum.value).trim() === "" && cmpState.pValid){
+      cmpPNum.value = cmpState.P;
+      applyCmpPValidation(validateP(cmpPNum.value));
+      renderCompare();
+    }
+  });
+
+  // Explicit save/load uses its own key ("psychro_compare_saved"), kept separate
+  // from the auto-persisted live session state ("psychro_compare_autostate") so
+  // editing A/B after saving does not silently overwrite the saved snapshot.
+  document.getElementById("cmp-save").addEventListener("click", function(){
+    var ok = lsSet("psychro_compare_saved", cmpState);
+    document.getElementById("cmp-toast").textContent = ok ? "비교 상태를 저장했습니다." : "이 환경에서는 저장소를 사용할 수 없어 저장하지 못했습니다.";
+  });
+  document.getElementById("cmp-load").addEventListener("click", function(){
+    var saved = lsGet("psychro_compare_saved");
+    if (!saved){
+      document.getElementById("cmp-toast").textContent = "저장된 비교 상태가 없습니다. 먼저 '이 비교 저장' 버튼을 눌러주세요.";
+      return;
+    }
+    cmpState = saved;
+    cmpState.pValid = true;
+    cmpPNum.value = cmpState.P;
+    applyCmpPValidation(validateP(cmpState.P));
+    cmpTA.set(cmpState.A.T); cmpRHA.set(cmpState.A.RH);
+    cmpTB.set(cmpState.B.T); cmpRHB.set(cmpState.B.RH);
+    document.getElementById("cmp-toast").textContent = "저장된 비교 상태를 불러왔습니다.";
+    renderCompare();
+  });
+
+  function renderCompare(){
+    if (!cmpState.pValid){
+      cmpResultsTable.innerHTML = "<div class='calc-blocked-msg'>공유 기압 값이 유효하지 않아 비교를 계산할 수 없습니다.</div>";
+      while (cmpChart.firstChild) cmpChart.removeChild(cmpChart.firstChild);
+      cmpChart.appendChild(el("text", {x:16, y:28, fill:"var(--danger)", "font-size":"13"}, "입력값을 확인하세요"));
+      return;
+    }
+    var Ppa = cmpState.P * 1000;
+    var a = Psychro.calcFromTRH(cmpState.A.T, cmpState.A.RH/100, Ppa);
+    var b = Psychro.calcFromTRH(cmpState.B.T, cmpState.B.RH/100, Ppa);
+
+    var rows = [
+      ["함습량 W (g/kg)", a.W*1000, b.W*1000, 2],
+      ["습구온도 (°C)", a.Twb, b.Twb, 1],
+      ["이슬점/서리점 (°C)", a.Tdp, b.Tdp, 1],
+      ["엔탈피 (kJ/kg)", a.h, b.h, 2],
+      ["수증기압 (kPa)", kPa(a.Pw), kPa(b.Pw), 3],
+      ["VPD (kPa)", kPa(a.VPD), kPa(b.VPD), 3],
+      ["수증기밀도 (g/m³)", a.vaporDensity*1000, b.vaporDensity*1000, 2]
+    ];
+    var html = '<div class="cmp-head"><div>A</div><div>B</div><div>B&minus;A</div></div>';
+    html += rows.map(function(r){
+      var av = r[1].toFixed(r[3]), bv = r[2].toFixed(r[3]), dv = (r[2]-r[1]).toFixed(r[3]);
+      var sign = (r[2]-r[1]) >= 0 ? "+" : "";
+      return '<div class="cmp-metric"><div class="cmp-name">'+r[0]+'</div><div class="cmp-vals"><div>'+av+'</div><div>'+bv+'</div><div class="delta">'+sign+dv+'</div></div></div>';
+    }).join("");
+    cmpResultsTable.innerHTML = html;
+
+    buildChart(cmpChart, Ppa, false, [
+      { T:a.T, W:a.W, cls:"pt-a", label:"A", color:"var(--teal-dark)" },
+      { T:b.T, W:b.W, cls:"pt-b", label:"B", color:"var(--orange)" }
+    ]);
+    // Auto-persist for session continuity only; kept separate from the explicit
+    // "saved" snapshot (see cmp-save/cmp-load above) so Save/Load stays meaningful.
+    lsSet("psychro_compare_autostate", cmpState);
+  }
+
+  /* ======================================================================
+     Tabs
+     ====================================================================== */
+  document.querySelectorAll("nav.tabs button").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll("nav.tabs button").forEach(function(b){ b.classList.remove("active"); b.setAttribute("aria-selected","false"); });
+      document.querySelectorAll("section.pane").forEach(function(p){ p.classList.remove("active"); });
+      btn.classList.add("active"); btn.setAttribute("aria-selected","true");
+      document.getElementById("pane-"+btn.getAttribute("data-tab")).classList.add("active");
+    });
+  });
+
+  /* ======================================================================
+     Init: restore saved state if present
+     ====================================================================== */
+  (function init(){
+    applyPValidation(validateP(calcPNum.value));
+    var savedCalc = lsGet("psychro_calc_state");
+    if (savedCalc && typeof savedCalc.T === "number"){
+      calcState = savedCalc;
+      calcPNum.value = calcState.P;
+      applyPValidation(validateP(calcState.P));
+      document.querySelector('input[name="calc-mode"][value="'+calcState.mode+'"]').checked = true;
+      calcRHField.style.display = (calcState.mode === "rh") ? "" : "none";
+      calcTwbField.style.display = (calcState.mode === "twb") ? "" : "none";
+      document.getElementById("calc-show-enthalpy").checked = !!calcState.showEnthalpy;
+      calcTPair.set(calcState.T);
+      calcRHPair.set(calcState.RH);
+      calcTwbPair.set(calcState.Twb);
+    }
+    applyCmpPValidation(validateP(cmpPNum.value));
+    // Restore the live/auto-saved session state on load; the explicit "saved"
+    // A/B snapshot (psychro_compare_saved) is only touched by Save/Load buttons.
+    var savedCmp = lsGet("psychro_compare_autostate");
+    if (savedCmp && savedCmp.A && savedCmp.B){
+      cmpState = savedCmp;
+      cmpState.pValid = true;
+      cmpPNum.value = cmpState.P;
+      applyCmpPValidation(validateP(cmpState.P));
+      cmpTA.set(cmpState.A.T); cmpRHA.set(cmpState.A.RH);
+      cmpTB.set(cmpState.B.T); cmpRHB.set(cmpState.B.RH);
+    }
+    renderCalc();
+    renderCompare();
+  })();
+
+})();
+</script>
+</body>
+</html>
